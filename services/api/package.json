@@ -11,7 +11,9 @@
     "test": "echo \"No tests yet\" && exit 0"
   },
   "dependencies": {
-    "express": "^4.21.2"
+    "@cartool/shared": "file:../shared",
+    "express": "^4.21.2",
+    "helmet": "^8.1.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.1",

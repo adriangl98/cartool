@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 
+import app.config  # noqa: F401 — validate env vars at startup
+
 app = FastAPI(title="cartool financial-engine")
 
 

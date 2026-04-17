@@ -14,17 +14,17 @@
 **Description:** Bootstrap the Playwright project with anti-bot hardening so all subsequent scrapers inherit a stealth-capable, proxy-aware browser launcher.
 
 **Tasks:**
-- [ ] Initialize Node.js project in `services/scraper/`
-- [ ] Install `playwright`, `playwright-extra`, `puppeteer-extra-plugin-stealth`
-- [ ] Create `BrowserLauncher` class:
+- [x] Initialize Node.js project in `services/scraper/`
+- [x] Install `playwright`, `playwright-extra`, `puppeteer-extra-plugin-stealth`
+- [x] Create `BrowserLauncher` class:
   - Launches Chromium with stealth plugin active
   - Randomizes `viewport` (width: 1280–1920, height: 720–1080)
   - Randomizes `userAgent` from a curated list of real Chrome UAs
   - Randomizes `Accept-Language` header (en-US, es-MX variants)
-- [ ] Create `HumanBehavior` helper:
+- [x] Create `HumanBehavior` helper:
   - `randomScroll(page)` — scrolls in steps of 100–400ms delays
   - `randomMousePath(page, targetX, targetY)` — moves mouse in curved path before clicking
-- [ ] Implement exponential back-off interceptor: on HTTP 429 or Cloudflare challenge, retry up to 3 times with base delay 8s (spec §5.2.1)
+- [x] Implement exponential back-off interceptor: on HTTP 429 or Cloudflare challenge, retry up to 3 times with base delay 8s (spec §5.2.1)
 
 **Acceptance Criteria:**
 - `BrowserLauncher.launch()` returns a Playwright `Page` object with stealth plugin active.
@@ -38,12 +38,12 @@
 **Description:** A proxy manager that keeps a pool of residential proxy URLs and rotates them per request, ensuring no IP is reused within a 15-minute window for the same dealer domain.
 
 **Tasks:**
-- [ ] Create `ProxyManager` class:
+- [x] Create `ProxyManager` class:
   - Loads proxy list from environment variable `PROXY_LIST` (newline-separated `host:port:user:pass` strings)
   - `getProxy(dealerDomain: string)`: returns a proxy not used for `dealerDomain` in the last 15 minutes
   - Tracks `lastUsed` timestamps per `(dealerDomain, proxyIp)` in Redis with a 15-minute TTL key
-- [ ] Integrate `ProxyManager` into `BrowserLauncher` so every `launch()` call receives a fresh proxy
-- [ ] Add a `proxyHealth` check: flag proxies that return 3 consecutive non-200 responses
+- [x] Integrate `ProxyManager` into `BrowserLauncher` so every `launch()` call receives a fresh proxy
+- [x] Add a `proxyHealth` check: flag proxies that return 3 consecutive non-200 responses
 
 **Acceptance Criteria:**
 - The same proxy IP is never returned for the same dealer domain within a 15-minute window.
@@ -103,13 +103,13 @@ interface RawListing {
 **Description:** Scraper that extracts inventory from Sincro-platform pages by intercepting XHR calls to the internal JSON price stack.
 
 **Tasks:**
-- [ ] Create `SincroExtractor` class:
+- [x] Create `SincroExtractor` class:
   - Set up Playwright request interception targeting `*.sincro.*` or `/SearchNew*` XHR patterns
   - Capture JSON price stack response body before page fully renders
   - Parse the price stack JSON into the `RawListing` interface
   - Fallback: if XHR intercept misses, parse `data-price` / `data-vin` HTML attributes
-- [ ] Handle session cookies: Sincro may require a cookie consent click before data loads
-- [ ] Persist raw response JSON to S3 (in addition to raw HTML)
+- [x] Handle session cookies: Sincro may require a cookie consent click before data loads
+- [x] Persist raw response JSON to S3 (in addition to raw HTML)
 
 **Acceptance Criteria:**
 - XHR intercept captures the price stack on at least 95% of test runs against local Sincro page fixtures.
@@ -123,11 +123,11 @@ interface RawListing {
 **Description:** Scraper for DealerOn-platform dealer sites using `wait-for-element` and `data-*` HTML attribute parsing.
 
 **Tasks:**
-- [ ] Create `DealerOnExtractor` class:
+- [x] Create `DealerOnExtractor` class:
   - Wait for CSS selector `[data-selling-price]` or equivalent to appear (spec §5.1)
   - Extract inventory items from `data-*` attributes on listing cards
   - Map to `RawListing` interface
-- [ ] Implement "load more" / pagination handling for infinite-scroll inventory grids
+- [x] Implement "load more" / pagination handling for infinite-scroll inventory grids
 
 **Acceptance Criteria:**
 - Extractor correctly parses `data-vin`, `data-price`, `data-msrp` attributes from DealerOn fixture HTML.
@@ -140,7 +140,7 @@ interface RawListing {
 **Description:** Scraper for Dealer Inspire sites by intercepting async API feed calls.
 
 **Tasks:**
-- [ ] Create `DealerInspireExtractor` class:
+- [x] Create `DealerInspireExtractor` class:
   - Intercept API calls matching patterns like `/api/inventory*` or `/vehicles/api*`
   - Parse the JSON response into `RawListing` interface
   - Fallback to HTML parsing if API call pattern doesn't match

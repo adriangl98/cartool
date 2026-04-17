@@ -1,0 +1,51 @@
+{
+  "inventory": [
+    {
+      "vin": "1HGCV1F31LA001001",
+      "year": 2020,
+      "make": "Honda",
+      "model": "Accord",
+      "trim": "Sport",
+      "msrp": 28530,
+      "internet_price": 26995,
+      "payments": {
+        "lease": {
+          "monthly_payment": 299,
+          "due_at_signing": 2499,
+          "term_months": 36,
+          "money_factor": 0.00153,
+          "residual_percent": 52
+        }
+      }
+    },
+    {
+      "vin": "1HGCV1F34LA002002",
+      "year": 2020,
+      "make": "Honda",
+      "model": "Accord",
+      "trim": "EX-L",
+      "msrp": 32530,
+      "internet_price": 31100,
+      "payments": {
+        "finance": {
+          "monthly_payment": 485,
+          "apr_percent": 2.9,
+          "term_months": 60
+        }
+      }
+    },
+    {
+      "vin": "5FNYF5H59LB003003",
+      "year": 2020,
+      "make": "Honda",
+      "model": "Pilot",
+      "trim": "EX",
+      "msrp": 37955,
+      "internet_price": 36100,
+      "payments": null
+    }
+  ],
+  "total_count": 3,
+  "page": 1,
+  "page_size": 24
+}

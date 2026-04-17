@@ -95,7 +95,7 @@
 - [x] Create `.github/workflows/deploy.yml`: push Docker images to ECR and deploy to ECS Fargate on merge to `main`
 - [x] Add `npm audit` (Node.js) and `pip audit` (Python) steps — fail pipeline on critical severity
 - [x] Add Dependabot configuration for `npm` and `pip` (spec §11.1 A06)
-- [ ] Configure GitHub Secrets for all environment variables used in CI
+- [x] Configure GitHub Secrets for all environment variables used in CI
 
 **Acceptance Criteria:**
 - A PR with a failing test causes the CI pipeline to fail and block merge.
@@ -109,10 +109,10 @@
 **Description:** Establish a consistent pattern for configuration across all environments.
 
 **Tasks:**
-- [ ] Define `.env.example` files for each service listing all required environment variables
-- [ ] Integrate AWS Secrets Manager (or Doppler for local dev) for runtime secret injection
-- [ ] Define environment tiers: `development`, `staging`, `production`
-- [ ] Add `Helmet.js` as a dependency on all Express/Fastify services and enable all default headers (spec §11.1 A05)
+- [x] Define `.env.example` files for each service listing all required environment variables
+- [x] Integrate AWS Secrets Manager (or Doppler for local dev) for runtime secret injection
+- [x] Define environment tiers: `development`, `staging`, `production`
+- [x] Add `Helmet.js` as a dependency on all Express/Fastify services and enable all default headers (spec §11.1 A05)
 
 **Acceptance Criteria:**
 - No `.env` files are committed to the repository (`.gitignore` enforced).

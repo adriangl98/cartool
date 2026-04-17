@@ -1,2 +1,12 @@
-/.env.local
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+
+# Environment files – never commit secrets
+.env
+.env.local
+.env.*
+!.env.example
+
 /.github

@@ -1,0 +1,81 @@
+{
+  "Vehicles": [
+    {
+      "VIN": "5TFBY5F18NX901234",
+      "Year": 2025,
+      "Make": "Toyota",
+      "Model": "Tundra",
+      "Trim": "SR5 CrewMax",
+      "MSRP": 44985,
+      "SellingPrice": 42500,
+      "InternetPrice": 42500,
+      "Payments": {
+        "Lease": {
+          "MonthlyPayment": 489,
+          "DueAtSigning": 3999,
+          "Term": 36,
+          "MoneyFactor": 0.00125,
+          "ResidualPercent": 58
+        }
+      }
+    },
+    {
+      "VIN": "JTDKN3DU5R0567890",
+      "Year": 2026,
+      "Make": "Toyota",
+      "Model": "Camry",
+      "Trim": "SE",
+      "MSRP": 30485,
+      "SellingPrice": 29200,
+      "Payments": {
+        "Finance": {
+          "MonthlyPayment": 485,
+          "APR": 4.9,
+          "Term": 72
+        }
+      }
+    },
+    {
+      "VIN": "2T1BURHE8RC345678",
+      "Year": 2026,
+      "Make": "Toyota",
+      "Model": "Corolla",
+      "Trim": "LE",
+      "MSRP": 23500,
+      "SellingPrice": 22800,
+      "InternetPrice": 22800
+    },
+    {
+      "VIN": "5TDZA23C06S789012",
+      "Year": 2025,
+      "Make": "Toyota",
+      "Model": "4Runner",
+      "Trim": "TRD Off-Road",
+      "MSRP": 42955,
+      "SellingPrice": 41500,
+      "Payments": {
+        "Lease": {
+          "MonthlyPayment": 529,
+          "DueAtSigning": 4500,
+          "Term": 36,
+          "MoneyFactor": 0.00150,
+          "ResidualPercent": 55
+        },
+        "Finance": {
+          "MonthlyPayment": 699,
+          "APR": 5.49,
+          "Term": 60
+        }
+      }
+    },
+    {
+      "VIN": "JTERU5JR7R5234567",
+      "Year": 2026,
+      "Make": "Toyota",
+      "Model": "RAV4",
+      "Trim": "XLE Premium",
+      "MSRP": 36150,
+      "SellingPrice": 35200
+    }
+  ]
+}
