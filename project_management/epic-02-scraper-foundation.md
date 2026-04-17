@@ -156,19 +156,19 @@ interface RawListing {
 **Description:** A BullMQ-based orchestrator that schedules and dispatches scrape jobs per dealer on the schedule defined in the spec.
 
 **Tasks:**
-- [ ] Create `ScrapeOrchestrator` service:
+- [x] Create `ScrapeOrchestrator` service:
   - On startup, load all `is_active = TRUE` dealers from the `dealers` table
   - Enqueue a `scrape-job` for each dealer with the correct repeat schedule (spec §5.2.2):
     - Dealer inventory pages: every 6 hours
     - Specials pages: every 12 hours
     - Buy rate database: 1st of each month
   - Job payload: `{ dealerId, url, platform, jobType: 'inventory' | 'specials' | 'buy_rates' }`
-- [ ] Create `ScrapeWorker`:
+- [x] Create `ScrapeWorker`:
   - Consumes `scrape-jobs` queue
   - Routes job to correct Extractor based on `platform` field
   - On success: writes `RawListing[]` to a `raw_listings` stage table or directly triggers E03 enrichment pipeline
   - On failure: logs error with `dealerId`, `url`, retry count; BullMQ handles retries
-- [ ] Implement job concurrency limit: max 20 concurrent Playwright instances (spec §12)
+- [x] Implement job concurrency limit: max 20 concurrent Playwright instances (spec §12)
 
 **Acceptance Criteria:**
 - All active dealers are scheduled correctly; schedules survive a service restart.
