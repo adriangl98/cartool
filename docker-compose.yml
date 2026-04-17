@@ -1,0 +1,155 @@
+# docker-compose.yml — cartool local development environment
+# All secrets are injected from .env.local (see .env.example at repo root).
+# Never commit real credentials. Copy .env.example → .env.local and fill in values.
+
+services:
+
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: cartool_dev
+      POSTGRES_USER: cartool_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cartool_user -d cartool_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── DB Migrator (one-shot job) ───────────────────────────────────────────────
+
+  db-migrator:
+    build:
+      context: ./services/db
+      dockerfile: Dockerfile
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://cartool_user:${POSTGRES_PASSWORD}@postgres:5432/cartool_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+
+  # ── Application Services ────────────────────────────────────────────────────
+
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://cartool_user:${POSTGRES_PASSWORD}@postgres:5432/cartool_dev
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      db-migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  auth:
+    build:
+      context: ./services/auth
+      dockerfile: Dockerfile
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://cartool_user:${POSTGRES_PASSWORD}@postgres:5432/cartool_dev
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      PORT: "3001"
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      db-migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  notification:
+    build:
+      context: ./services/notification
+      dockerfile: Dockerfile
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://cartool_user:${POSTGRES_PASSWORD}@postgres:5432/cartool_dev
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      PORT: "3004"
+    ports:
+      - "3004:3004"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      db-migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  scraper:
+    build:
+      context: ./services/scraper
+      dockerfile: Dockerfile
+    env_file: .env.local
+    environment:
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379
+      PORT: "3003"
+    ports:
+      - "3003:3003"
+    # Playwright/Chromium requires a non-trivial /dev/shm size to avoid OOM crashes
+    shm_size: "1gb"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  financial-engine:
+    build:
+      context: ./services/financial-engine
+      dockerfile: Dockerfile
+    env_file: .env.local
+    environment:
+      DATABASE_URL: postgresql://cartool_user:${POSTGRES_PASSWORD}@postgres:5432/cartool_dev
+      PORT: "8000"
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      db-migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+# ── Volumes ────────────────────────────────────────────────────────────────────
+
+volumes:
+  postgres_data:
+  redis_data:

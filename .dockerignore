@@ -1,0 +1,18 @@
+# Root-level ignores (also referenced by docker-compose build contexts)
+**/node_modules/
+**/__pycache__/
+**/*.pyc
+**/.env
+**/.env.*
+!**/.env.example
+**/dist/
+**/coverage/
+**/.venv/
+**/venv/
+**/*.log
+.git/
+.github/
+docs/
+project_management/
+.DS_Store
+Thumbs.db
