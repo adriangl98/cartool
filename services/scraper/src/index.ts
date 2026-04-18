@@ -10,7 +10,8 @@ import {
 } from "@cartool/shared";
 import { BrowserLauncher } from "./browser";
 import { ScrapeOrchestrator, ScrapeWorker } from "./orchestrator";
-import type { ScrapeJobPayload } from "./types";
+import { VinEnrichmentWorker } from "./enrichment";
+import type { ScrapeJobPayload, EnrichmentJobPayload } from "./types";
 
 validateEnv(["DATABASE_URL", "REDIS_URL", "PROXY_LIST"]);
 
@@ -26,7 +27,7 @@ const scrapeQueue = new Queue<ScrapeJobPayload>(QUEUE_NAMES.SCRAPE, {
   connection: createRedisClient(),
 });
 
-const enrichmentQueue = new Queue(QUEUE_NAMES.ENRICHMENT, {
+const enrichmentQueue = new Queue<EnrichmentJobPayload>(QUEUE_NAMES.ENRICHMENT, {
   connection: createRedisClient(),
 });
 
@@ -37,6 +38,13 @@ new ScrapeWorker({
   connection: createRedisClient(),
   enrichmentQueue,
   redis: redisClient,
+  pool,
+});
+
+// ── Enrichment Worker ─────────────────────────────────────────────────────
+new VinEnrichmentWorker({
+  connection: createRedisClient(),
+  pool,
 });
 
 // ── Routes ─────────────────────────────────────────────────────────────────

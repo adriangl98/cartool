@@ -8,6 +8,7 @@
     "migrate:down": "node-pg-migrate down --migrations-dir migrations --config-file node-pg-migrate.config.cjs",
     "migrate:create": "node-pg-migrate create --migrations-dir migrations --config-file node-pg-migrate.config.cjs",
     "seed": "node scripts/seed.cjs",
+    "seed:buy-rates": "node scripts/seed-buy-rates.cjs",
     "test": "node --experimental-vm-modules node_modules/.bin/jest --forceExit",
     "typecheck": "tsc --noEmit"
   },

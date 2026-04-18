@@ -1,8 +1,11 @@
+import fs from "node:fs";
 import { Worker, Queue, type Job } from "bullmq";
 import type Redis from "ioredis";
+import type { Pool } from "pg";
 import { QUEUE_NAMES } from "@cartool/shared";
 import type { ScrapeJobPayload } from "../types/ScrapeJobPayload";
 import type { RawListing } from "../types/RawListing";
+import { importBuyRates } from "./BuyRatesImporter";
 import {
   BaseExtractor,
   DealerDotComExtractor,
@@ -27,6 +30,7 @@ const MAX_CONCURRENCY = 20;
 export interface ProcessJobDeps {
   enrichmentQueue: Queue;
   redis: Pick<Redis, "set">;
+  pool: Pool;
 }
 
 /**
@@ -42,13 +46,27 @@ export async function processScrapeJob(
 ): Promise<void> {
   const { dealerId, url, platform, jobType } = job.data;
 
-  // buy_rates extractor not yet implemented — skip gracefully
   if (jobType === "buy_rates") {
+    const csvPath = process.env["BUY_RATES_CSV_PATH"];
+    if (!csvPath) {
+      console.log(
+        JSON.stringify({
+          level: "warn",
+          event: "buy-rates-skipped",
+          reason: "BUY_RATES_CSV_PATH not configured",
+          dealerId,
+        }),
+      );
+      return;
+    }
+    const csvContent = fs.readFileSync(csvPath, "utf8");
+    const rowsUpserted = await importBuyRates(csvContent, deps.pool);
     console.log(
       JSON.stringify({
         level: "info",
-        message: "buy_rates scrape not yet implemented — skipping",
+        event: "buy-rates-import-triggered",
         dealerId,
+        rowsUpserted,
       }),
     );
     return;
@@ -99,6 +117,8 @@ export interface ScrapeWorkerOptions {
   enrichmentQueue: Queue;
   /** Redis client used for writing per-dealer last-run timestamps. */
   redis: Pick<Redis, "set">;
+  /** pg Pool used by the buy_rates monthly refresh import. */
+  pool: Pool;
 }
 
 /**

@@ -14,7 +14,7 @@
 **Description:** Map dealer-specific price field names to the canonical `adjusted_selling_price` before any financial calculation.
 
 **Tasks:**
-- [ ] Create `NormalizationService` in `services/scraper/` (or a shared `services/normalizer/`):
+- [x] Create `NormalizationService` in `services/scraper/` (or a shared `services/normalizer/`):
   - Accept a `RawListing` and return a `NormalizedListing` with `adjustedSellingPrice` populated
   - Apply the normalization map from spec §5.3:
     ```
@@ -22,7 +22,7 @@
     "Dealer Discount Price", "e-Price", "Online Price", "Discounted Price"
     ```
   - Precedence: use the lowest price found across all mapped fields
-- [ ] Implement **rebate detection** on `adjustedSellingPrice`:
+- [x] Implement **rebate detection** on `adjustedSellingPrice`:
   - Scan `rawFinePrintText` for keywords: `"after rebates"`, `"includes $X rebate"`, `"with loyalty bonus"`
   - If found, extract the rebate dollar amount via regex `\$[\d,]+` and log it separately
   - Set `rebateDetected: true` and `rebateAmount` on the normalized listing
@@ -40,7 +40,7 @@
 **Description:** Scan fine-print text for mandatory dealer add-ons and compute an `addonAdjustedPrice` used in deal scoring.
 
 **Tasks:**
-- [ ] Create `AddonDetector` class:
+- [x] Create `AddonDetector` class:
   - Accept `rawFinePrintText: string`
   - For each entry in the keyword table below, perform a case-insensitive scan
   - When a keyword matches:
@@ -60,8 +60,8 @@
 | `interior protection`, `fabric protection`, `scotchgard` | Interior Protection | $295 |
 | `protection package`, `laredo package`, `dealer installed` | Generic Package | Parsed from text |
 
-- [ ] Compute `addonAdjustedPrice = adjustedSellingPrice + SUM(detectedAddon.detectedCost)` where `isMandatory = true`
-- [ ] Persist detected add-ons to the `dealer_addons` table, linked to the listing
+- [x] Compute `addonAdjustedPrice = adjustedSellingPrice + SUM(detectedAddon.detectedCost)` where `isMandatory = true`
+- [x] Persist detected add-ons to the `dealer_addons` table, linked to the listing
 
 **Acceptance Criteria:**
 - Given fine-print text `"Includes nitrogen-filled tires and window tint ($699)"`, the detector returns 2 `DetectedAddon` records: nitrogen at midpoint ($249) and window tint with explicit cost ($699).
@@ -75,12 +75,12 @@
 **Description:** Detect when a lender (e.g., NMAC) is absorbing the Texas sales tax, and flag the listing accordingly.
 
 **Tasks:**
-- [ ] Extend `AddonDetector` (or create a `TaxCreditDetector`) to scan `rawFinePrintText` for:
+- [x] Extend `AddonDetector` (or create a `TaxCreditDetector`) to scan `rawFinePrintText` for:
   - `"tax relief"`, `"lender tax credit"`, `"0% sales tax"`, `"nmac special program"`, `"tax credit applied"`
-- [ ] If a match is found:
+- [x] If a match is found:
   - Set `taxCreditFlag = true` on the listing
   - Set `texasTax = 0` for this listing in all financial calculations (overrides the standard §6.2 formula)
-- [ ] Log the matched keyword and surrounding 100 characters for auditing
+- [x] Log the matched keyword and surrounding 100 characters for auditing
 
 **Acceptance Criteria:**
 - Given fine-print containing `"NMAC Special Program — tax credit applied"`, `taxCreditFlag` is `true` and `texasTax` is set to `0`.
@@ -94,11 +94,11 @@
 **Description:** On balloon finance listings, detect whether GAP insurance is mentioned in the fine print and flag accordingly.
 
 **Tasks:**
-- [ ] Scan `rawFinePrintText` for keywords: `"gap insurance"`, `"gap coverage"`, `"guaranteed asset protection"`
-- [ ] If `transactionType = 'balloon'` and no GAP keyword is found:
+- [x] Scan `rawFinePrintText` for keywords: `"gap insurance"`, `"gap coverage"`, `"guaranteed asset protection"`
+- [x] If `transactionType = 'balloon'` and no GAP keyword is found:
   - Set `gapInsuranceDetected = false`
   - This triggers a warning in the API response (spec §9.3)
-- [ ] If `transactionType = 'balloon'` and GAP keyword is found:
+- [x] If `transactionType = 'balloon'` and GAP keyword is found:
   - Set `gapInsuranceDetected = true`
 
 **Acceptance Criteria:**
@@ -113,17 +113,17 @@
 **Description:** Asynchronously enrich each new listing's VIN with assembly country and plant data from the NHTSA vPIC public API.
 
 **Tasks:**
-- [ ] Create `VinEnrichmentWorker` consuming the `enrichment-jobs` BullMQ queue
-- [ ] For each listing, call:
+- [x] Create `VinEnrichmentWorker` consuming the `enrichment-jobs` BullMQ queue
+- [x] For each listing, call:
   ```
   GET https://vpic.nhtsa.dot.gov/api/vehicles/decodevin/{vin}?format=json
   ```
-- [ ] Parse the response for:
+- [x] Parse the response for:
   - `Plant Country` → `assemblyCountry` (store as ISO 3166-1 alpha-2, e.g., `"US"`, `"JP"`)
   - `Plant City` + `Plant State` → `assemblyPlant` (e.g., `"Smyrna, TN"`)
-- [ ] Set `obbbaEligible = true` if `assemblyCountry = 'US'`
-- [ ] Handle API errors gracefully: if vPIC is unavailable, retry up to 3 times with 5s delay; set `assemblyCountry = null` and continue (do not block the listing from being saved)
-- [ ] Do not re-enrich a VIN already present in the `listings` table with a non-null `assemblyCountry` (deduplication)
+- [x] Set `obbbaEligible = true` if `assemblyCountry = 'US'`
+- [x] Handle API errors gracefully: if vPIC is unavailable, retry up to 3 times with 5s delay; set `assemblyCountry = null` and continue (do not block the listing from being saved)
+- [x] Do not re-enrich a VIN already present in the `listings` table with a non-null `assemblyCountry` (deduplication)
 
 **Acceptance Criteria:**
 - VIN `5TFDW5F15HX640000` (Toyota Tundra, San Antonio TX) returns `assemblyCountry = "US"` and `obbbaEligible = true`.
@@ -138,12 +138,12 @@
 **Description:** Populate the `buy_rates` table with manufacturer base Money Factors, enabling the MF markup detection in E04.
 
 **Tasks:**
-- [ ] Create a CSV import script: `scripts/seed-buy-rates.ts`
+- [x] Create a CSV import script: `scripts/seed-buy-rates.ts`
   - Accepts a CSV with columns: `make, model, trim, year, month_year, base_mf, residual_24, residual_36, residual_48`
   - Upserts records (using `ON CONFLICT DO UPDATE`) into the `buy_rates` table
-- [ ] Create a BullMQ repeating job: runs on the 1st of each month to re-import updated buy rates (spec §5.2.2)
-- [ ] Document the fallback process: if Leasehackr API access is not available, the manual CSV is the source of truth (spec §14, Q1)
-- [ ] Seed with known 2026 base data for all in-scope makes (Nissan, Ford, Honda, Kia, Mazda, RAM, Chevrolet, Toyota, GMC, Buick, Mercedes-Benz)
+- [x] Create a BullMQ repeating job: runs on the 1st of each month to re-import updated buy rates (spec §5.2.2)
+- [x] Document the fallback process: if Leasehackr API access is not available, the manual CSV is the source of truth (spec §14, Q1)
+- [x] Seed with known 2026 base data for all in-scope makes (Nissan, Ford, Honda, Kia, Mazda, RAM, Chevrolet, Toyota, GMC, Buick, Mercedes-Benz)
 
 **Acceptance Criteria:**
 - `npm run seed:buy-rates -- --file=buy_rates_april_2026.csv` inserts all records without errors.

@@ -36,6 +36,17 @@ jest.mock("bullmq", () => ({
 
 const mockAddBulk = jest.fn().mockResolvedValue([]);
 const mockRedisSet = jest.fn().mockResolvedValue("OK");
+const mockPoolQuery = jest.fn().mockResolvedValue({ rows: [], rowCount: 0 });
+
+const mockImportBuyRates = jest.fn().mockResolvedValue(5);
+jest.mock("../../src/orchestrator/BuyRatesImporter", () => ({
+  importBuyRates: mockImportBuyRates,
+}));
+
+const mockReadFileSync = jest.fn().mockReturnValue("make,model\nNissan,Altima");
+jest.mock("node:fs", () => ({
+  readFileSync: mockReadFileSync,
+}));
 
 import { processScrapeJob, ScrapeWorker } from "../../src/orchestrator/ScrapeWorker";
 import type { ScrapeJobPayload } from "../../src/types/ScrapeJobPayload";
@@ -55,6 +66,7 @@ function makeDeps() {
   return {
     enrichmentQueue: { addBulk: mockAddBulk } as any,
     redis: { set: mockRedisSet } as any,
+    pool: { connect: jest.fn(), query: mockPoolQuery } as any,
   };
 }
 
@@ -120,9 +132,10 @@ describe("processScrapeJob", () => {
     );
   });
 
-  // ── buy_rates stub ────────────────────────────────────────────────────────
+  // ── buy_rates ─────────────────────────────────────────────────────────────
 
   it("skips extraction and does NOT call any extractor for buy_rates jobs", async () => {
+    delete process.env["BUY_RATES_CSV_PATH"];
     const job = makeJob({
       dealerId: "dealer-1",
       url: "https://example.com/inventory",
@@ -137,7 +150,8 @@ describe("processScrapeJob", () => {
     expect(mockRedisSet).not.toHaveBeenCalled();
   });
 
-  it("logs a structured 'not yet implemented' message for buy_rates", async () => {
+  it("logs a warn-level skip when BUY_RATES_CSV_PATH is not configured", async () => {
+    delete process.env["BUY_RATES_CSV_PATH"];
     const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
     const job = makeJob({
       dealerId: "dealer-99",
@@ -148,10 +162,49 @@ describe("processScrapeJob", () => {
 
     await processScrapeJob(job, makeDeps());
 
-    expect(logSpy).toHaveBeenCalledTimes(1);
-    const logArg = JSON.parse(logSpy.mock.calls[0][0] as string);
-    expect(logArg.level).toBe("info");
+    const warnCall = logSpy.mock.calls.find((c) => {
+      try {
+        return JSON.parse(c[0] as string).level === "warn";
+      } catch {
+        return false;
+      }
+    });
+    expect(warnCall).toBeDefined();
+    const logArg = JSON.parse(warnCall![0] as string);
+    expect(logArg.event).toBe("buy-rates-skipped");
     expect(logArg.dealerId).toBe("dealer-99");
+    expect(mockImportBuyRates).not.toHaveBeenCalled();
+  });
+
+  it("reads the CSV file and calls importBuyRates when BUY_RATES_CSV_PATH is set", async () => {
+    process.env["BUY_RATES_CSV_PATH"] = "/data/buy_rates.csv";
+    const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const job = makeJob({
+      dealerId: "dealer-77",
+      url: "https://example.com/inventory",
+      platform: "dealer.com",
+      jobType: "buy_rates",
+    });
+
+    await processScrapeJob(job, makeDeps());
+
+    expect(mockReadFileSync).toHaveBeenCalledWith("/data/buy_rates.csv", "utf8");
+    expect(mockImportBuyRates).toHaveBeenCalledTimes(1);
+    expect(mockImportBuyRates.mock.calls[0]![0]).toBe(mockReadFileSync.mock.results[0]!.value);
+
+    const infoCall = logSpy.mock.calls.find((c) => {
+      try {
+        return JSON.parse(c[0] as string).event === "buy-rates-import-triggered";
+      } catch {
+        return false;
+      }
+    });
+    expect(infoCall).toBeDefined();
+    const logArg = JSON.parse(infoCall![0] as string);
+    expect(logArg.dealerId).toBe("dealer-77");
+    expect(logArg.rowsUpserted).toBe(5); // mockImportBuyRates resolves to 5
+
+    delete process.env["BUY_RATES_CSV_PATH"];
   });
 
   // ── Unknown platform ─────────────────────────────────────────────────────
@@ -276,6 +329,7 @@ describe("ScrapeWorker", () => {
       connection: {} as any,
       enrichmentQueue: { addBulk: mockAddBulk } as any,
       redis: { set: mockRedisSet } as any,
+      pool: { connect: jest.fn() } as any,
     });
 
     expect(Worker).toHaveBeenCalledTimes(1);
@@ -287,6 +341,7 @@ describe("ScrapeWorker", () => {
       connection: {} as any,
       enrichmentQueue: { addBulk: mockAddBulk } as any,
       redis: { set: mockRedisSet } as any,
+      pool: { connect: jest.fn() } as any,
     });
 
     const workerOpts = (Worker as unknown as jest.Mock).mock.calls[0][2] as { concurrency: number };
@@ -298,6 +353,7 @@ describe("ScrapeWorker", () => {
       connection: {} as any,
       enrichmentQueue: { addBulk: mockAddBulk } as any,
       redis: { set: mockRedisSet } as any,
+      pool: { connect: jest.fn() } as any,
     });
 
     expect(mockWorkerOn).toHaveBeenCalledWith("failed", expect.any(Function));
@@ -309,6 +365,7 @@ describe("ScrapeWorker", () => {
       connection: {} as any,
       enrichmentQueue: { addBulk: mockAddBulk } as any,
       redis: { set: mockRedisSet } as any,
+      pool: { connect: jest.fn() } as any,
     });
 
     const failedHandler = mockWorkerOn.mock.calls.find(([evt]) => evt === "failed")![1] as (
@@ -335,6 +392,7 @@ describe("ScrapeWorker", () => {
       connection: {} as any,
       enrichmentQueue: { addBulk: mockAddBulk } as any,
       redis: { set: mockRedisSet } as any,
+      pool: { connect: jest.fn() } as any,
     });
 
     const failedHandler = mockWorkerOn.mock.calls.find(([evt]) => evt === "failed")![1] as (
