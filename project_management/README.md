@@ -1,6 +1,6 @@
 # Laredo Automotive Market Intelligence — Project Management
 
-**Last Updated:** April 17, 2026  
+**Last Updated:** April 18, 2026  
 **Spec Reference:** `docs/technical-spec.md`
 
 ---
@@ -18,9 +18,9 @@ This project is broken into **9 Epics**, each scoped to a single deployable serv
 | # | Epic | Phase | Status | Depends On |
 |---|---|---|---|---|
 | [E01](epic-01-infrastructure.md) | Infrastructure & DevOps | Pre-work | ✅ Complete | — |
-| [E02](epic-02-scraper-foundation.md) | Scraper Foundation | Phase 1 | 🔄 In Progress (15/19) | E01 |
-| [E03](epic-03-data-enrichment.md) | Data Enrichment & Normalization | Phase 1 | Not Started | E02 |
-| [E04](epic-04-financial-engine.md) | Financial Intelligence Engine | Phase 2 | Not Started | E03 |
+| [E02](epic-02-scraper-foundation.md) | Scraper Foundation | Phase 1 | 🔄 In Progress (6/7 features) | E01 |
+| [E03](epic-03-data-enrichment.md) | Data Enrichment & Normalization | Phase 1 | ✅ Complete | E02 |
+| [E04](epic-04-financial-engine.md) | Financial Intelligence Engine | Phase 2 | 🔄 In Progress (8/10 features) | E03 |
 | [E05](epic-05-core-api.md) | Core API Service | Phase 3 | Not Started | E04 |
 | [E06](epic-06-auth-service.md) | Auth & User Management | Phase 3 | Not Started | E01 |
 | [E07](epic-07-notifications.md) | Notification Service | Phase 3 | Not Started | E06 |
