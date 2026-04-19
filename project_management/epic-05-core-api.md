@@ -14,13 +14,13 @@
 **Description:** Initialize the Core API service with Express (or Fastify), middleware stack, and security headers.
 
 **Tasks:**
-- [ ] Initialize Node.js 22 project in `services/api/` with TypeScript
-- [ ] Install: `express` (or `fastify`), `helmet`, `express-rate-limit`, `pg` (or `postgres`), `ioredis`, `zod` (input validation), `jsonwebtoken`
-- [ ] Configure `Helmet.js` with all default headers enabled (spec §11.1 A05)
-- [ ] Configure rate limiting: **60 requests/min per IP** on all public routes (spec §7.2)
-- [ ] Add `GET /health` health check endpoint
-- [ ] Implement a `validate` middleware using `zod` schemas — all query params and request bodies are validated before handler logic runs (spec §11.1 A03, A04)
-- [ ] Configure CORS: allow only the known frontend origins (no wildcard `*` in production)
+- [x] Initialize Node.js 22 project in `services/api/` with TypeScript
+- [x] Install: `express` (or `fastify`), `helmet`, `express-rate-limit`, `pg` (or `postgres`), `ioredis`, `zod` (input validation), `jsonwebtoken`
+- [x] Configure `Helmet.js` with all default headers enabled (spec §11.1 A05)
+- [x] Configure rate limiting: **60 requests/min per IP** on all public routes (spec §7.2)
+- [x] Add `GET /health` health check endpoint
+- [x] Implement a `validate` middleware using `zod` schemas — all query params and request bodies are validated before handler logic runs (spec §11.1 A03, A04)
+- [x] Configure CORS: allow only the known frontend origins (no wildcard `*` in production)
 
 **Acceptance Criteria:**
 - All HTTP responses include `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security`.
@@ -34,15 +34,15 @@
 **Description:** Paginated, filterable endpoint returning enriched listings sorted by Deal Score descending by default.
 
 **Tasks:**
-- [ ] Define Zod schema for all query parameters (spec §7.3):
+- [x] Define Zod schema for all query parameters (spec §7.3):
   - `make` (optional, comma-separated string), `model` (optional), `transaction_type` (enum), `max_effective_monthly` (positive number), `min_deal_score` (integer 0–100), `dealer_id` (UUID), `obbba_eligible` (boolean), `page` (integer ≥ 1, default 1), `per_page` (integer 1–50, default 20)
-- [ ] Implement the database query using **parameterized statements** only — no string interpolation of user-provided values
-- [ ] Build dynamic WHERE clause from provided filters
-- [ ] Join `dealer_addons` and `dealers` tables for the full response shape (spec §7.3 response)
-- [ ] Compute derived field `equivalent_apr` in the response: `money_factor * 2400`
-- [ ] Include Redis cache: cache query results for 1 hour keyed by the full normalized query string
-- [ ] Response: matches the shape defined in spec §7.3 exactly, including `pagination` object
-- [ ] Write integration tests:
+- [x] Implement the database query using **parameterized statements** only — no string interpolation of user-provided values
+- [x] Build dynamic WHERE clause from provided filters
+- [x] Join `dealer_addons` and `dealers` tables for the full response shape (spec §7.3 response)
+- [x] Compute derived field `equivalent_apr` in the response: `money_factor * 2400`
+- [x] Include Redis cache: cache query results for 1 hour keyed by the full normalized query string
+- [x] Response: matches the shape defined in spec §7.3 exactly, including `pagination` object
+- [x] Write integration tests:
   - Filter by `make=Nissan` returns only Nissan listings
   - Filter by `min_deal_score=70` returns only listings with `deal_score >= 70`
   - `per_page=50` is the max — `per_page=51` returns a 400
@@ -60,12 +60,12 @@
 **Description:** Accept budget constraints, call the Financial Engine solver, and return payment-qualified listings.
 
 **Tasks:**
-- [ ] Define Zod schema for the request body (spec §7.3):
+- [x] Define Zod schema for the request body (spec §7.3):
   - `desired_monthly` (positive number), `down_payment` (number ≥ 0), `term_months` (enum: 24, 36, 48, 60), `transaction_type` (enum), `preferred_makes` (optional string array), `obbba_only` (optional boolean)
-- [ ] Call the Python Financial Engine's `POST /solve` endpoint with the budget parameters
-- [ ] Use the returned `max_selling_price` to filter listings via the same query logic as F05.2
-- [ ] Include `reverse_search_summary` in the response (spec §7.3)
-- [ ] Integration tests:
+- [x] Call the Python Financial Engine's `POST /solve` endpoint with the budget parameters
+- [x] Use the returned `max_selling_price` to filter listings via the same query logic as F05.2
+- [x] Include `reverse_search_summary` in the response (spec §7.3)
+- [x] Integration tests:
   - Valid input returns listings with `effective_monthly ≤ desired_monthly`
   - `desired_monthly = 0` returns 400
   - `term_months = 37` returns 400
@@ -82,11 +82,11 @@
 **Description:** Return the full scraped fine-print text of a listing with detected add-ons highlighted.
 
 **Tasks:**
-- [ ] Validate that `:id` is a valid UUID (400 if not)
-- [ ] Query the `listings` table for `raw_fine_print_text` and join `dealer_addons`
-- [ ] If `tax_credit_flag = true`, include the banner text in the response (spec §8.5)
-- [ ] Include a `dealer_listing_url` field: the live link to the dealer page (from the `dealers` table)
-- [ ] Return 404 if listing ID does not exist
+- [x] Validate that `:id` is a valid UUID (400 if not)
+- [x] Query the `listings` table for `raw_fine_print_text` and join `dealer_addons`
+- [x] If `tax_credit_flag = true`, include the banner text in the response (spec §8.5)
+- [x] Include a `dealer_listing_url` field: the live link to the dealer page (from the `dealers` table)
+- [x] Return 404 if listing ID does not exist
 
 **Acceptance Criteria:**
 - A listing with add-ons returns `addons` array with `name`, `estimated_cost`, `is_mandatory`.
@@ -100,11 +100,11 @@
 **Description:** Return detailed OBBBA federal interest deduction simulation for a finance listing.
 
 **Tasks:**
-- [ ] Validate `:id` is a UUID; return 404 if listing not found
-- [ ] Return 400 with message `"OBBBA deduction only applies to finance transactions"` if `transaction_type ≠ 'finance'`
-- [ ] Return 400 with message `"Vehicle is not OBBBA-eligible (foreign assembly)"` if `obbba_eligible = false`
-- [ ] Call the Python Financial Engine's `/obbba/{listing_id}` endpoint (or compute inline using shared logic)
-- [ ] Response matches the shape defined in spec §7.3 with all 4 tax bracket options
+- [x] Validate `:id` is a UUID; return 404 if listing not found
+- [x] Return 400 with message `"OBBBA deduction only applies to finance transactions"` if `transaction_type ≠ 'finance'`
+- [x] Return 400 with message `"Vehicle is not OBBBA-eligible (foreign assembly)"` if `obbba_eligible = false`
+- [x] Call the Python Financial Engine's `/obbba/{listing_id}` endpoint (or compute inline using shared logic)
+- [x] Response matches the shape defined in spec §7.3 with all 4 tax bracket options
 
 **Acceptance Criteria:**
 - Eligible finance listing returns all 4 bracket rows with non-zero savings.
@@ -117,10 +117,10 @@
 **Description:** Return the list of all active scraped dealers with last-scraped timestamps.
 
 **Tasks:**
-- [ ] Query `dealers` table for all `is_active = true` records
-- [ ] Join with the most recent `scraped_at` timestamp from the `listings` table per dealer
-- [ ] Return: `id`, `name`, `group_name`, `base_url`, `zip_code`, `last_scraped_at`
-- [ ] No authentication required; subject to standard rate limiting
+- [x] Query `dealers` table for all `is_active = true` records
+- [x] Join with the most recent `scraped_at` timestamp from the `listings` table per dealer
+- [x] Return: `id`, `name`, `group_name`, `base_url`, `zip_code`, `last_scraped_at`
+- [x] No authentication required; subject to standard rate limiting
 
 **Acceptance Criteria:**
 - Response includes at least Sames Auto Group and Powell Watson auto dealers after seeding.
@@ -133,9 +133,9 @@
 **Description:** Return current month's buy rates. Restricted to admin JWT role.
 
 **Tasks:**
-- [ ] Apply `requireRole('admin')` middleware — return 403 if JWT does not contain `role: "admin"` claim
-- [ ] Query `buy_rates` for the current month (`month_year = date_trunc('month', NOW())`)
-- [ ] Return the full buy rate table for all tracked makes/models
+- [x] Apply `requireRole('admin')` middleware — return 403 if JWT does not contain `role: "admin"` claim
+- [x] Query `buy_rates` for the current month (`month_year = date_trunc('month', NOW())`)
+- [x] Return the full buy rate table for all tracked makes/models
 
 **Acceptance Criteria:**
 - Unauthenticated request returns 401.
@@ -149,10 +149,10 @@
 **Description:** Inject a `warnings` array into the response for balloon finance listings missing GAP insurance.
 
 **Tasks:**
-- [ ] Create a response post-processor (middleware or interceptor) that checks:
+- [x] Create a response post-processor (middleware or interceptor) that checks:
   - If `transaction_type = 'balloon'` AND `gap_insurance_detected = false`
   - Add `warnings: ["GAP insurance not detected in this balloon finance contract. Consider adding before signing."]` to the listing object (spec §9.3)
-- [ ] Apply this to both `GET /listings` and `GET /listings/:id/disclosure` responses
+- [x] Apply this to both `GET /listings` and `GET /listings/:id/disclosure` responses
 
 **Acceptance Criteria:**
 - A balloon listing with `gap_insurance_detected = false` has the warning in the API response.

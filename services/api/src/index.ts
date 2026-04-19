@@ -1,17 +1,19 @@
-import express from "express";
-import helmet from "helmet";
-import { validateEnv } from "@cartool/shared";
+import { config } from "./config";
+import { createApp } from "./app";
 
-validateEnv(["DATABASE_URL", "REDIS_URL"]);
-
-const app = express();
-app.use(helmet());
-const port = Number(process.env.PORT ?? 3000);
-
-app.get("/health", (_req, res) => {
-  res.json({ status: "ok", service: "api" });
+const app = createApp({
+  nodeEnv: config.nodeEnv,
+  corsAllowedOrigins: config.corsAllowedOrigins,
+  financialEngineUrl: config.financialEngineUrl,
+  jwtSecret: config.jwtSecret,
 });
 
-app.listen(port, () => {
-  console.log(JSON.stringify({ level: "info", message: `api service listening on ${port}` }));
+app.listen(config.port, () => {
+  console.log(
+    JSON.stringify({
+      level: "info",
+      message: `api service listening on ${config.port}`,
+    })
+  );
 });
+
